@@ -1,123 +1,115 @@
 import time
 import random
 
-print("""
-███████████████████████████████████████
-█───█─█─████────█───█─███─█────█───█───█
-██─██─█─████─██─█─███──█──█─██─██─██─███
-██─██─█─████────█───█─█─█─█─██─██─██───█
-██─██───████─█─██─███─███─█─██─██─██─███
-██─███─█████─█─██───█─███─█────██─██───█
-███████████████████████████████████████
-Author: A.Vahap Doğan
-      
-TV kumandaları mantığında yapılmış bir python console programı.
-	""")
-
 class Command:
-    """
-    TV kontrolünü sağlayan bir sınıf.
-    """
-    def __init__(self, state="off", volume=0, channel_list=["TRT", "NTV", "DMAX"]):
-        """
-        Command sınıfının yapıcı metodu.
-        state: TV'nin açık veya kapalı olduğunu belirten bir dize.
-        volume: TV'nin ses seviyesini belirten bir tamsayı.
-        channel_list: TV'nin kanal listesini tutan bir liste.
-        """
-        self.state = state
-        self.volume = volume
-        self.channel_list = channel_list
-        self.channel = None
+    MAX_VOLUME = 31
+    MIN_VOLUME = 0
+    
+    def __init__(self):
+        self.state = "off"
+        self.volume = 0
+        self.channel_list = ["trt", "ntv", "dmax"]  # Küçük harfle başlatıldı
+        self.current_channel = None
+        self.favorite_channels = []
+        self.channel_history = []
 
     def tv_on(self):
-        """
-        TV'yi açma metodudur.
-        """
         if self.state == "on":
-            print("TV is already on!")
+            print("TV zaten açık!")
         else:
-            print("TV is on.")
+            print("TV açıldı.")
             self.state = "on"
 
     def tv_off(self):
-        """
-        TV'yi kapama metodudur.
-        """
         if self.state == "off":
-            print("TV is already off!")
+            print("TV zaten kapalı!")
         else:
-            print("TV is off...")
+            print("TV kapatıldı...")
             self.state = "off"
 
     def adjust_volume(self):
-        """
-        Ses seviyesini ayarlama metodudur.
-        """
         while True:
-            answer = input("Volume down : '<' \n Volume up : '>' \n Exit : 'q'")
-            if answer == '<':
-                if self.volume != 0:
-                    self.volume -= 1
-                    print("Volume :", self.volume)
-            elif answer == '>':
-                if self.volume != 31:
-                    self.volume += 1
-                    print("Volume :", self.volume)
+            answer = input("Ses azalt: '<' \n Ses artır: '>' \n Çıkış: 'q' ")
+            if answer == '<' and self.volume > self.MIN_VOLUME:
+                self.volume -= 1
+                print("Ses:", self.volume)
+            elif answer == '>' and self.volume < self.MAX_VOLUME:
+                self.volume += 1
+                print("Ses:", self.volume)
             elif answer == 'q':
-                print("Exiting volume adjustment.")
+                print("Ses ayarlamasından çıkılıyor.")
                 break
             else:
-                print("Invalid input!")
+                print("Geçersiz girdi veya ses aralığı dışında!")
 
     def add_channel(self, channel_name):
-        """
-        Yeni bir kanal eklemek için metod.
-        channel_name: Eklenmek istenen kanalın adı.
-        """
-        print("Channel is being added....")
-        time.sleep(1)
-        self.channel_list.append(channel_name)
-        print("Channel is added.")
+        channel_name = channel_name.strip().lower()  # Küçük harfe dönüştürüldü
+        if channel_name not in self.channel_list:
+            self.channel_list.append(channel_name)
+            print(f"Kanal '{channel_name}' eklendi.")
+        else:
+            print(f"Kanal '{channel_name}' zaten mevcut.")
+
+    def remove_channel(self, channel_name):
+        channel_name = channel_name.strip().lower()  # Küçük harfe dönüştürüldü
+        if channel_name in self.channel_list:
+            self.channel_list.remove(channel_name)
+            print(f"Kanal '{channel_name}' silindi.")
+        else:
+            print(f"Kanal '{channel_name}' mevcut değil.")
 
     def random_channel(self):
-        """
-        Rastgele bir kanal seçme metodudur.
-        """
-        random_channel_index = random.randint(0, len(self.channel_list) - 1)
-        self.channel = self.channel_list[random_channel_index]
-        print("Current channel :", self.channel)
+        if self.channel_list:
+            self.current_channel = random.choice(self.channel_list)
+            print("Şu anki kanal:", self.current_channel)
+            self.channel_history.append(self.current_channel)
+        else:
+            print("Hiç kanal yok.")
 
-    def __len__(self):
-        """
-        Kanal listesinin uzunluğunu döndüren metod.
-        """
-        return len(self.channel_list)
+    def list_favorites(self):
+        if self.favorite_channels:
+            print("Favori Kanallar:", ", ".join(self.favorite_channels))
+        else:
+            print("Favori kanal yok.")
+
+    def add_favorite(self, channel_name):
+        channel_name = channel_name.strip().lower()  # Küçük harfe dönüştürüldü
+        if channel_name in self.channel_list and channel_name not in self.favorite_channels:
+            self.favorite_channels.append(channel_name)
+            print(f"Kanal '{channel_name}' favorilere eklendi.")
+        else:
+            print(f"Kanal '{channel_name}' ya mevcut değil ya da zaten favorilerde.")
+
+    def show_channel_history(self):
+        if self.channel_history:
+            print("Son izlenen kanallar:", ", ".join(self.channel_history))
+        else:
+            print("Kanal geçmişi yok.")
 
     def __str__(self):
-        """
-        Objenin dizesel temsilini döndüren metod.
-        """
-        return f"TV status: {self.state}\nTV volume: {self.volume}\nChannel list: {self.channel_list}\nCurrent channel: {self.channel}"
+        return f"TV durumu: {self.state}\nSes seviyesi: {self.volume}\nKanal listesi: {self.channel_list}\nŞu anki kanal: {self.current_channel}"
 
 # Ana program
 command = Command()
-print(
-    """
-    1. TV on
-    2. TV off
-    3. Volume
-    4. Channel add
-    5. Status channel
-    6. Random channel
-    7. TV data
-    Enter "q" for exit
-    """)
 while True:
-    process = input("Enter process : ")
+    print("""
+    1. TV aç
+    2. TV kapat
+    3. Ses ayarla
+    4. Kanal ekle
+    5. Kanal sil
+    6. Rastgele kanal
+    7. Favori kanallar
+    8. Favori ekle
+    9. Kanal geçmişi
+    10. TV bilgisi
+    Çıkmak için "q" yazın
+    """)
+    
+    process = input("İşlem girin: ")
 
     if process == "q":
-        print("Program is finishing...")
+        print("Program sonlanıyor...")
         break
     
     elif process == "1":
@@ -130,20 +122,28 @@ while True:
         command.adjust_volume()
 
     elif process == "4":
-        channel_names = input("Separate channels to be added with ','")
-        channel_list = channel_names.split(",")
+        channel_name = input("Eklenecek kanalı girin: ")
+        command.add_channel(channel_name)
 
-        for add_channel in channel_list:
-            command.add_channel(add_channel)
-    
     elif process == "5":
-        print("Channel number.", len(command))
-    
+        channel_name = input("Silinecek kanalı girin: ")
+        command.remove_channel(channel_name)
+
     elif process == "6":
         command.random_channel()
 
     elif process == "7":
+        command.list_favorites()
+
+    elif process == "8":
+        channel_name = input("Favori kanalı girin: ")
+        command.add_favorite(channel_name)
+
+    elif process == "9":
+        command.show_channel_history()
+
+    elif process == "10":
         print(command)
 
     else:
-        print("Invalid process!")
+        print("Geçersiz işlem!")
